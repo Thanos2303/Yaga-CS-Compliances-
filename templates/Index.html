@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>CS Compliance Dashboard</title>
+
+    <style>
+
+        body{
+            margin:0;
+            font-family:Arial;
+            display:flex;
+            background:#0f2027;
+            color:white;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar{
+            width:220px;
+            background:#111;
+            height:100vh;
+            padding:20px;
+        }
+
+        .sidebar h2{
+            color:cyan;
+        }
+
+        .menu div{
+            padding:12px;
+            margin:10px 0;
+            background:#222;
+            border-radius:10px;
+            cursor:pointer;
+            transition:0.3s;
+        }
+
+        .menu div:hover,
+        .activeMenu{
+            background:cyan;
+            color:black;
+        }
+
+        /* MAIN */
+
+        .main{
+            flex:1;
+            padding:20px;
+            overflow-y:auto;
+            height:100vh;
+        }
+
+        h1{
+            text-align:center;
+        }
+
+        .container{
+            display:flex;
+            flex-wrap:wrap;
+            gap:20px;
+        }
+
+        .card{
+            width:250px;
+            padding:15px;
+            border-radius:15px;
+            background:rgba(255,255,255,0.1);
+            backdrop-filter:blur(8px);
+            transition:0.3s;
+        }
+
+        .card:hover{
+            transform:scale(1.05);
+            box-shadow:0 0 20px cyan;
+        }
+
+        .title{
+            font-size:18px;
+            font-weight:bold;
+            margin-bottom:10px;
+        }
+
+        .date-row{
+            margin-top:5px;
+            font-size:14px;
+        }
+
+        .Pending{
+            color:yellow;
+            margin-top:10px;
+        }
+
+        .Completed{
+            color:lightgreen;
+            margin-top:10px;
+        }
+
+        .Overdue{
+            color:red;
+            margin-top:10px;
+        }
+
+        .btn{
+            display:inline-block;
+            margin-top:12px;
+            padding:7px 12px;
+            background:cyan;
+            color:black;
+            border-radius:8px;
+            text-decoration:none;
+            font-weight:bold;
+        }
+
+        .btn:hover{
+            background:white;
+        }
+
+        .section{
+            display:none;
+        }
+
+        .active{
+            display:block;
+        }
+
+        h2,h3{
+            margin-top:25px;
+        }
+
+        /* FORM */
+
+        .form-box{
+            background:#111;
+            padding:15px;
+            border-radius:15px;
+            margin-bottom:20px;
+        }
+
+        .form-box form{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+
+        .form-box input,
+        .form-box select,
+        .form-box button{
+            padding:10px;
+            border:none;
+            border-radius:8px;
+        }
+
+        .form-box button{
+            background:cyan;
+            font-weight:bold;
+            cursor:pointer;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+
+<div class="sidebar">
+
+    <h2>⚖️ CS Panel</h2>
+
+    <div class="menu">
+
+        <div onclick="showTab('drafting')"
+             id="draftBtn"
+             class="activeMenu">
+
+             📝 Drafting
+
+        </div>
+
+        <div onclick="showTab('roc')"
+             id="rocBtn">
+
+             📑 ROC
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
+    <h1>🚀 Compliance Dashboard</h1>
+
+    <!-- ADD FORM -->
+
+    <div class="form-box">
+
+        <h2>➕ Add Compliance</h2>
+
+        <form action="/add" method="POST">
+
+            <input type="text"
+                   name="name"
+                   placeholder="Compliance Name"
+                   required>
+
+            <input type="date"
+                   name="event_date"
+                   required>
+
+            <input type="date"
+                   name="due_date"
+                   required>
+
+            <select name="type">
+
+                <option value="drafting">
+                    Drafting
+                </option>
+
+                <option value="roc">
+                    ROC
+                </option>
+
+            </select>
+
+            <select name="period">
+
+                <option value="annual">
+                    Annual
+                </option>
+
+                <option value="quarterly">
+                    Quarterly
+                </option>
+
+                <option value="half">
+                    Half-Yearly
+                </option>
+
+                <option value="event">
+                    Event Based
+                </option>
+
+            </select>
+
+            <button type="submit">
+                Add
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- DRAFTING -->
+
+    <div id="drafting" class="section active">
+
+        <h2>📝 Drafting</h2>
+
+        <div class="container">
+
+            {% for c in compliances if c.type == "drafting" %}
+
+            <div class="card">
+
+                <div class="title">
+                    {{ c.name }}
+                </div>
+
+                <div class="date-row">
+                    📅 Event Date:
+                    {{ c.event_date }}
+                </div>
+
+                <div class="date-row">
+                    ⏳ Due Date:
+                    {{ c.due_date }}
+                </div>
+
+                <div class="{{ c.status }}">
+                    Status:
+                    {{ c.status }}
+                </div>
+
+                <a class="btn"
+                   href="/update/{{ c.id }}">
+                   Done
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <!-- ROC -->
+
+    <div id="roc" class="section">
+
+        <h2>📑 ROC Compliances</h2>
+
+        <!-- ANNUAL -->
+
+        <h3>📅 Annual</h3>
+
+        <div class="container">
+
+            {% for c in compliances if c.type=="roc" and c.period=="annual" %}
+
+            <div class="card">
+
+                <div class="title">
+                    {{ c.name }}
+                </div>
+
+                <div class="date-row">
+                    📅 AGM / Event:
+                    {{ c.event_date }}
+                </div>
+
+                <div class="date-row">
+                    ⏳ Due:
+                    {{ c.due_date }}
+                </div>
+
+                <div class="{{ c.status }}">
+                    Status:
+                    {{ c.status }}
+                </div>
+
+                <!-- DPT-3 OPEN PAGE -->
+
+                {% if c.name == "DPT-3 Filing" %}
+
+                <a class="btn" href="/dpt3">
+                    Open
+                </a>
+
+                {% else %}
+
+                <a class="btn"
+                   href="/update/{{ c.id }}">
+                   Done
+                </a>
+
+                {% endif %}
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <!-- QUARTERLY -->
+
+        <h3>📊 Quarterly</h3>
+
+        <div class="container">
+
+            {% for c in compliances if c.type=="roc" and c.period=="quarterly" %}
+
+            <div class="card">
+
+                <div class="title">
+                    {{ c.name }}
+                </div>
+
+                <div class="date-row">
+                    📅 Event:
+                    {{ c.event_date }}
+                </div>
+
+                <div class="date-row">
+                    ⏳ Due:
+                    {{ c.due_date }}
+                </div>
+
+                <div class="{{ c.status }}">
+                    Status:
+                    {{ c.status }}
+                </div>
+
+                <a class="btn"
+                   href="/update/{{ c.id }}">
+                   Done
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <!-- HALF YEARLY -->
+
+        <h3>📆 Half-Yearly</h3>
+
+        <div class="container">
+
+            {% for c in compliances if c.type=="roc" and c.period=="half" %}
+
+            <div class="card">
+
+                <div class="title">
+                    {{ c.name }}
+                </div>
+
+                <div class="date-row">
+                    📅 Event:
+                    {{ c.event_date }}
+                </div>
+
+                <div class="date-row">
+                    ⏳ Due:
+                    {{ c.due_date }}
+                </div>
+
+                <div class="{{ c.status }}">
+                    Status:
+                    {{ c.status }}
+                </div>
+
+                <a class="btn"
+                   href="/update/{{ c.id }}">
+                   Done
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <!-- EVENT -->
+
+        <h3>⚡ Event Based</h3>
+
+        <div class="container">
+
+            {% for c in compliances if c.type=="roc" and c.period=="event" %}
+
+            <div class="card">
+
+                <div class="title">
+                    {{ c.name }}
+                </div>
+
+                <div class="date-row">
+                    📅 Event:
+                    {{ c.event_date }}
+                </div>
+
+                <div class="date-row">
+                    ⏳ Due:
+                    {{ c.due_date }}
+                </div>
+
+                <div class="{{ c.status }}">
+                    Status:
+                    {{ c.status }}
+                </div>
+
+                <a class="btn"
+                   href="/update/{{ c.id }}">
+                   Done
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- JS -->
+
+<script>
+
+function showTab(tab){
+
+    document
+    .getElementById("drafting")
+    .classList.remove("active");
+
+    document
+    .getElementById("roc")
+    .classList.remove("active");
+
+    document
+    .getElementById("draftBtn")
+    .classList.remove("activeMenu");
+
+    document
+    .getElementById("rocBtn")
+    .classList.remove("activeMenu");
+
+    document
+    .getElementById(tab)
+    .classList.add("active");
+
+    if(tab === "drafting"){
+
+        document
+        .getElementById("draftBtn")
+        .classList.add("activeMenu");
+
+    }
+
+    else{
+
+        document
+        .getElementById("rocBtn")
+        .classList.add("activeMenu");
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
