@@ -1,534 +1,223 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
-    <title>CS Compliance Dashboard</title>
-
+    <title>Compliance Battleground</title>
     <style>
+        :root {
+            --neon-cyan: #00f2ff;
+            --neon-pink: #ff00ff;
+            --bg-dark: #020617;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border: #1e293b;
+        }
 
-        body{
-            margin:0;
-            font-family:Arial;
-            display:flex;
-            background:#0f2027;
-            color:white;
+        body {
+            margin: 0; font-family: 'Segoe UI', sans-serif; display: flex;
+            background: var(--bg-dark); background-image: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+            color: white; height: 100vh; overflow: hidden;
         }
 
         /* SIDEBAR */
-
-        .sidebar{
-            width:220px;
-            background:#111;
-            height:100vh;
-            padding:20px;
+        .sidebar {
+            width: 260px; background: rgba(0, 0, 0, 0.9); border-right: 2px solid var(--neon-cyan);
+            padding: 25px; display: flex; flex-direction: column; backdrop-filter: blur(15px);
         }
 
-        .sidebar h2{
-            color:cyan;
+        .sidebar h2 { color: var(--neon-cyan); text-transform: uppercase; letter-spacing: 2px; font-size: 16px; margin-bottom: 30px; text-align: center; }
+
+        .avatar-box {
+            background: #111827; padding: 15px; border-radius: 15px; margin-bottom: 25px; border: 1px solid var(--border);
+        }
+        .avatar-label { font-size: 9px; color: var(--neon-pink); text-transform: uppercase; margin-bottom: 8px; font-weight: bold; }
+        .avatar-box input {
+            width: 100%; background: transparent; border: none; color: white; 
+            font-weight: bold; outline: none; font-size: 16px;
         }
 
-        .menu div{
-            padding:12px;
-            margin:10px 0;
-            background:#222;
-            border-radius:10px;
-            cursor:pointer;
-            transition:0.3s;
+        .menu div {
+            padding: 15px; margin: 10px 0; background: #111827; border-radius: 12px; cursor: pointer;
+            transition: 0.3s; border-left: 4px solid transparent; font-weight: 600; text-transform: uppercase;
         }
 
-        .menu div:hover,
-        .activeMenu{
-            background:cyan;
-            color:black;
+        .menu div:hover, .activeMenu {
+            background: rgba(0, 242, 255, 0.1) !important; color: var(--neon-cyan) !important;
+            border-left: 4px solid var(--neon-cyan) !important;
         }
 
-        /* MAIN */
-
-        .main{
-            flex:1;
-            padding:20px;
-            overflow-y:auto;
-            height:100vh;
+        .deploy-btn {
+            margin-top: auto; background: var(--neon-pink); color: white; padding: 15px;
+            border-radius: 12px; text-align: center; cursor: pointer; font-weight: 800; border: none;
         }
 
-        h1{
-            text-align:center;
+        /* MAIN CONTENT */
+        .main { flex: 1; padding: 40px; overflow-y: auto; }
+
+        .battleground-header { text-align: center; margin-bottom: 40px; }
+        #displayAvatarName { 
+            font-size: 44px; font-weight: 900; letter-spacing: 4px;
+            background: linear-gradient(to right, #fff, var(--neon-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-transform: uppercase; margin: 0;
+        }
+        .sub-title { color: var(--neon-pink); letter-spacing: 5px; font-size: 12px; font-weight: bold; margin-top: 5px; }
+
+        #addFormSection {
+            display: none; background: rgba(15, 23, 42, 0.95); padding: 25px; border-radius: 20px;
+            border: 2px solid var(--neon-pink); margin-bottom: 30px;
         }
 
-        .container{
-            display:flex;
-            flex-wrap:wrap;
-            gap:20px;
+        .container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        
+        .card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--border); transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); border-color: var(--neon-cyan); }
+        
+        .title { font-size: 19px; font-weight: 800; margin-bottom: 12px; color: #fff; }
+        .info-row { font-size: 13px; color: #94a3b8; margin: 4px 0; display: flex; justify-content: space-between; }
+        .info-row b { color: #cbd5e1; }
+
+        .status-tag { font-size: 10px; padding: 3px 8px; border-radius: 5px; text-transform: uppercase; border: 1px solid; font-weight: bold; display: inline-block; margin-top: 10px; }
+        .Pending { color: #f1c40f; border-color: #f1c40f; }
+        .Overdue { color: #ff4757; border-color: #ff4757; }
+
+        .action-btn {
+            display: block; margin-top: 15px; padding: 12px; background: var(--neon-cyan);
+            color: #000; border-radius: 10px; text-decoration: none; text-align: center; font-weight: 900;
         }
 
-        .card{
-            width:250px;
-            padding:15px;
-            border-radius:15px;
-            background:rgba(255,255,255,0.1);
-            backdrop-filter:blur(8px);
-            transition:0.3s;
-        }
+        .section { display: none; }
+        .active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .card:hover{
-            transform:scale(1.05);
-            box-shadow:0 0 20px cyan;
-        }
-
-        .title{
-            font-size:18px;
-            font-weight:bold;
-            margin-bottom:10px;
-        }
-
-        .date-row{
-            margin-top:5px;
-            font-size:14px;
-        }
-
-        .Pending{
-            color:yellow;
-            margin-top:10px;
-        }
-
-        .Completed{
-            color:lightgreen;
-            margin-top:10px;
-        }
-
-        .Overdue{
-            color:red;
-            margin-top:10px;
-        }
-
-        .btn{
-            display:inline-block;
-            margin-top:12px;
-            padding:7px 12px;
-            background:cyan;
-            color:black;
-            border-radius:8px;
-            text-decoration:none;
-            font-weight:bold;
-        }
-
-        .btn:hover{
-            background:white;
-        }
-
-        .section{
-            display:none;
-        }
-
-        .active{
-            display:block;
-        }
-
-        h2,h3{
-            margin-top:25px;
-        }
-
-        /* FORM */
-
-        .form-box{
-            background:#111;
-            padding:15px;
-            border-radius:15px;
-            margin-bottom:20px;
-        }
-
-        .form-box form{
-            display:flex;
-            flex-wrap:wrap;
-            gap:10px;
-        }
-
-        .form-box input,
-        .form-box select,
-        .form-box button{
-            padding:10px;
-            border:none;
-            border-radius:8px;
-        }
-
-        .form-box button{
-            background:cyan;
-            font-weight:bold;
-            cursor:pointer;
-        }
-
+        h3 { color: var(--neon-cyan); text-transform: uppercase; font-size: 13px; margin: 30px 0 15px 0; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
     </style>
-
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-
 <div class="sidebar">
-
-    <h2>⚖️ CS Panel</h2>
+    <h2>⚔️ COMMAND</h2>
+    
+    <div class="avatar-box">
+        <div class="avatar-label">Avatar Name</div>
+        <input type="text" id="avatarInput" placeholder="ENTER NAME..." onkeyup="updateAvatarName()">
+    </div>
 
     <div class="menu">
-
-        <div onclick="showTab('drafting')"
-             id="draftBtn"
-             class="activeMenu">
-
-             📝 Drafting
-
-        </div>
-
-        <div onclick="showTab('roc')"
-             id="rocBtn">
-
-             📑 ROC
-
-        </div>
-
+        <div onclick="showTab('drafting')" id="draftBtn" class="activeMenu">📑 Missions</div>
+        <div onclick="showTab('roc')" id="rocBtn">🚀 ROC Zone</div>
     </div>
 
+    <button class="deploy-btn" onclick="toggleAddForm()">NEW DEPLOYMENT</button>
 </div>
-
-<!-- MAIN -->
 
 <div class="main">
-
-    <h1>🚀 Compliance Dashboard</h1>
-
-    <!-- ADD FORM -->
-
-    <div class="form-box">
-
-        <h2>➕ Add Compliance</h2>
-
-        <form action="/add" method="POST">
-
-            <input type="text"
-                   name="name"
-                   placeholder="Compliance Name"
-                   required>
-
-            <input type="date"
-                   name="event_date"
-                   required>
-
-            <input type="date"
-                   name="due_date"
-                   required>
-
-            <select name="type">
-
-                <option value="drafting">
-                    Drafting
-                </option>
-
-                <option value="roc">
-                    ROC
-                </option>
-
-            </select>
-
-            <select name="period">
-
-                <option value="annual">
-                    Annual
-                </option>
-
-                <option value="quarterly">
-                    Quarterly
-                </option>
-
-                <option value="half">
-                    Half-Yearly
-                </option>
-
-                <option value="event">
-                    Event Based
-                </option>
-
-            </select>
-
-            <button type="submit">
-                Add
-            </button>
-
-        </form>
-
+    <div class="battleground-header">
+        <h1 id="displayAvatarName">PLAYER</h1>
+        <div class="sub-title">COMPLIANCE BATTLEGROUND</div>
     </div>
 
-    <!-- DRAFTING -->
+    <div id="addFormSection">
+        <form action="/add" method="POST" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <input type="text" name="name" placeholder="MISSION NAME" style="background:#0f172a; border:1px solid var(--border); color:white; padding:10px; border-radius:8px;" required>
+            <input type="date" name="event_date" required style="background:#0f172a; border:1px solid var(--border); color:white; padding:10px; border-radius:8px;">
+            <input type="date" name="due_date" required style="background:#0f172a; border:1px solid var(--border); color:white; padding:10px; border-radius:8px;">
+            <select name="type" style="background:#0f172a; border:1px solid var(--border); color:white; padding:10px; border-radius:8px;">
+                <option value="drafting">DRAFTING</option>
+                <option value="roc">ROC</option>
+            </select>
+            <select name="period" style="background:#0f172a; border:1px solid var(--border); color:white; padding:10px; border-radius:8px;">
+                <option value="annual">ANNUAL</option>
+                <option value="quarterly">QUARTERLY</option>
+                <option value="half">HALF-YEARLY</option>
+                <option value="event">EVENT BASED</option>
+            </select>
+            <button type="submit" style="background:var(--neon-pink); border:none; color:white; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">DEPLOY</button>
+        </form>
+    </div>
 
     <div id="drafting" class="section active">
-
-        <h2>📝 Drafting</h2>
-
+        <h3>DRAFTING OBJECTIVES</h3>
         <div class="container">
-
             {% for c in compliances if c.type == "drafting" %}
-
             <div class="card">
-
-                <div class="title">
-                    {{ c.name }}
-                </div>
-
-                <div class="date-row">
-                    📅 Event Date:
-                    {{ c.event_date }}
-                </div>
-
-                <div class="date-row">
-                    ⏳ Due Date:
-                    {{ c.due_date }}
-                </div>
-
-                <div class="{{ c.status }}">
-                    Status:
-                    {{ c.status }}
-                </div>
-
-                <a class="btn"
-                   href="/update/{{ c.id }}">
-                   Done
-                </a>
-
+                <div class="title">{{ c.name }}</div>
+                <div class="info-row"><span>EVENT DATE:</span> <b>{{ c.event_date }}</b></div>
+                <div class="info-row"><span>DUE DATE:</span> <b>{{ c.due_date }}</b></div>
+                <span class="status-tag {{ c.status }}">{{ c.status }}</span>
+                <a class="action-btn" href="/update/{{ c.id }}">EXECUTE</a>
             </div>
-
             {% endfor %}
-
         </div>
-
     </div>
-
-    <!-- ROC -->
 
     <div id="roc" class="section">
-
-        <h2>📑 ROC Compliances</h2>
-
-        <!-- ANNUAL -->
-
-        <h3>📅 Annual</h3>
-
+        <h3>CORE ANNUAL OPS</h3>
         <div class="container">
-
-            {% for c in compliances if c.type=="roc" and c.period=="annual" %}
-
             <div class="card">
-
-                <div class="title">
-                    {{ c.name }}
-                </div>
-
-                <div class="date-row">
-                    📅 AGM / Event:
-                    {{ c.event_date }}
-                </div>
-
-                <div class="date-row">
-                    ⏳ Due:
-                    {{ c.due_date }}
-                </div>
-
-                <div class="{{ c.status }}">
-                    Status:
-                    {{ c.status }}
-                </div>
-
-                <!-- DPT-3 OPEN PAGE -->
-
-                {% if c.name == "DPT-3 Filing" %}
-
-                <a class="btn" href="/dpt3">
-                    Open
-                </a>
-
-                {% else %}
-
-                <a class="btn"
-                   href="/update/{{ c.id }}">
-                   Done
-                </a>
-
-                {% endif %}
-
+                <div class="title">AOC-4</div>
+                <div class="info-row"><span>EVENT DATE:</span> <b>30/09/2026</b></div>
+                <div class="info-row"><span>DUE DATE:</span> <b>30/10/2026</b></div>
+                <span class="status-tag Pending">Pending</span>
+                <a class="action-btn" href="#">EXECUTE</a>
             </div>
-
-            {% endfor %}
-
+            <div class="card">
+                <div class="title">MGT-7</div>
+                <div class="info-row"><span>EVENT DATE:</span> <b>30/09/2026</b></div>
+                <div class="info-row"><span>DUE DATE:</span> <b>29/11/2026</b></div>
+                <span class="status-tag Pending">Pending</span>
+                <a class="action-btn" href="#">EXECUTE</a>
+            </div>
+            <div class="card" style="border-color: var(--neon-pink);">
+                <div class="title" style="color: var(--neon-pink);">DPT-3 BATTLE</div>
+                <div class="info-row"><span>EVENT DATE:</span> <b>31/03/2026</b></div>
+                <div class="info-row"><span>DUE DATE:</span> <b>30/06/2026</b></div>
+                <span class="status-tag Overdue">Boss Ready</span>
+                <a class="action-btn" href="/dpt3" style="background: var(--neon-pink); color:white;">ENTER BATTLE</a>
+            </div>
         </div>
 
-        <!-- QUARTERLY -->
-
-        <h3>📊 Quarterly</h3>
-
+        <h3>SECONDARY SECTORS</h3>
         <div class="container">
-
-            {% for c in compliances if c.type=="roc" and c.period=="quarterly" %}
-
+            {% for c in compliances if c.type == "roc" and c.name not in ["AOC-4", "MGT-7", "DPT-3"] %}
             <div class="card">
-
-                <div class="title">
-                    {{ c.name }}
-                </div>
-
-                <div class="date-row">
-                    📅 Event:
-                    {{ c.event_date }}
-                </div>
-
-                <div class="date-row">
-                    ⏳ Due:
-                    {{ c.due_date }}
-                </div>
-
-                <div class="{{ c.status }}">
-                    Status:
-                    {{ c.status }}
-                </div>
-
-                <a class="btn"
-                   href="/update/{{ c.id }}">
-                   Done
-                </a>
-
+                <div class="title">{{ c.name }}</div>
+                <div class="info-row"><span>EVENT DATE:</span> <b>{{ c.event_date }}</b></div>
+                <div class="info-row"><span>DUE DATE:</span> <b>{{ c.due_date }}</b></div>
+                <span class="status-tag {{ c.status }}">{{ c.status }}</span>
+                <a class="action-btn" href="/update/{{ c.id }}">EXECUTE</a>
             </div>
-
             {% endfor %}
-
         </div>
-
-        <!-- HALF YEARLY -->
-
-        <h3>📆 Half-Yearly</h3>
-
-        <div class="container">
-
-            {% for c in compliances if c.type=="roc" and c.period=="half" %}
-
-            <div class="card">
-
-                <div class="title">
-                    {{ c.name }}
-                </div>
-
-                <div class="date-row">
-                    📅 Event:
-                    {{ c.event_date }}
-                </div>
-
-                <div class="date-row">
-                    ⏳ Due:
-                    {{ c.due_date }}
-                </div>
-
-                <div class="{{ c.status }}">
-                    Status:
-                    {{ c.status }}
-                </div>
-
-                <a class="btn"
-                   href="/update/{{ c.id }}">
-                   Done
-                </a>
-
-            </div>
-
-            {% endfor %}
-
-        </div>
-
-        <!-- EVENT -->
-
-        <h3>⚡ Event Based</h3>
-
-        <div class="container">
-
-            {% for c in compliances if c.type=="roc" and c.period=="event" %}
-
-            <div class="card">
-
-                <div class="title">
-                    {{ c.name }}
-                </div>
-
-                <div class="date-row">
-                    📅 Event:
-                    {{ c.event_date }}
-                </div>
-
-                <div class="date-row">
-                    ⏳ Due:
-                    {{ c.due_date }}
-                </div>
-
-                <div class="{{ c.status }}">
-                    Status:
-                    {{ c.status }}
-                </div>
-
-                <a class="btn"
-                   href="/update/{{ c.id }}">
-                   Done
-                </a>
-
-            </div>
-
-            {% endfor %}
-
-        </div>
-
     </div>
-
 </div>
 
-<!-- JS -->
-
 <script>
-
 function showTab(tab){
-
-    document
-    .getElementById("drafting")
-    .classList.remove("active");
-
-    document
-    .getElementById("roc")
-    .classList.remove("active");
-
-    document
-    .getElementById("draftBtn")
-    .classList.remove("activeMenu");
-
-    document
-    .getElementById("rocBtn")
-    .classList.remove("activeMenu");
-
-    document
-    .getElementById(tab)
-    .classList.add("active");
-
-    if(tab === "drafting"){
-
-        document
-        .getElementById("draftBtn")
-        .classList.add("activeMenu");
-
-    }
-
-    else{
-
-        document
-        .getElementById("rocBtn")
-        .classList.add("activeMenu");
-
-    }
-
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.menu div').forEach(m => m.classList.remove('activeMenu'));
+    document.getElementById(tab).classList.add('active');
+    document.getElementById(tab === "drafting" ? "draftBtn" : "rocBtn").classList.add('activeMenu');
 }
 
-</script>
+function toggleAddForm() {
+    var x = document.getElementById("addFormSection");
+    x.style.display = (x.style.display === "block") ? "none" : "block";
+}
 
+// 1. Name Deploy Logic
+function updateAvatarName() {
+    let name = document.getElementById("avatarInput").value;
+    if(name.trim() === "") name = "PLAYER";
+    document.getElementById("displayAvatarName").innerText = name.toUpperCase();
+    localStorage.setItem("avatar_name", name);
+}
+
+// Load Name on Start
+window.onload = function() {
+    let savedName = localStorage.getItem("avatar_name") || "PLAYER";
+    document.getElementById("avatarInput").value = savedName === "PLAYER" ? "" : savedName;
+    document.getElementById("displayAvatarName").innerText = savedName.toUpperCase();
+}
+</script>
 </body>
 </html>
